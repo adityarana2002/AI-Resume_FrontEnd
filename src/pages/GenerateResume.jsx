@@ -1,31 +1,53 @@
 import React, { useState } from "react";
 import { FiSend, FiTrash2, FiFileText } from "react-icons/fi";
 import { generateResume } from "../api/ResumeService";
+import {useForm, useFieldArray} from "react-hook-form";
+import {  FaPlusCircle } from "react-icons/fa";
 import toast from "react-hot-toast";
-import { FaBrain } from "react-icons/fa";
+import { FaTrash,FaBrain } from "react-icons/fa";
 import { BiBook } from "react-icons/bi";
 
 const GenerateResume = () => {
-  const [description, setDescription] = useState("");
-  const [loading, setLoading] = useState(false);
-
-
-
-
   const [data, setData] = useState({
     personalInformation: {
-      fullName: "Aditya Rana",
-      email: "adityarana@email.com",
-      phoneNumber: "+1 234 567 8901",
-      location: {
-        city: "New York, USA",
-        country: "United States"
+      fullName: "John Doe",
+      email: "john.doe@email.com",
+      phoneNumber: "+1234567890",
+      location: "New York, USA",
+      linkedIn: "https://www.linkedin.com/in/johndoe/",
+      gitHub: "https://github.com/johndoe",
+      portfolio: "https://john-doe.portfolio website",
+    },
+    summary: "Experienced Java Developer...",
+    skills: {
+      programmingLanguages: ["Java", "Hindi", "English"],
+      frameworks: ["Spring Boot", "React.js"],
+      databases: ["MySQL", "PostgreSQL", "MongoDB"],
+      cloud: ["AWS"],
+      devOpsTools: ["Docker", "Kubernetes", "Ansible"],
+      otherSkills: ["RESTful APIs", "Microservices"],
+    },
+    experience: [
+      {
+        jobTitle: "Senior Software Developer",
+        company: "XYZ Solutions",
+        location: "New York, USA",
+        duration: "Jan 2017 - Present",
       },
-      linkedin: "https://example.com",
-      githubHub: "GitHub profile",
-      portfolio: "Portfolio link"
-    }
+    ],
   });
+  const {register, handleSubmit , control } = useForm({
+    defaultValues: data,
+  });
+
+  // Handle form submit
+  const onSubmit = (data) =>{
+    console.log("Form Data:" , data);
+  }
+  const [description, setDescription] = useState("");
+  const [loading, setLoading] = useState(false);
+  
+
   // This is Edit input option to change the details function
   function handleChange(event) {
     // Changing personal Informations.....
@@ -39,11 +61,9 @@ const GenerateResume = () => {
     });
   }
   // End of edit the input options
-
   const handleGenerate = async () => {
     console.log("Generating Resume with description:", description);
     try {
-
       setLoading(true);
       const responseData = await generateResume(description);
       console.log(responseData);
@@ -52,7 +72,6 @@ const GenerateResume = () => {
         duration: 3000,
         position: "top-center",
       });
-
     } catch (error) {
       console.log(error);
       toast.error("Error Generating Resume");
@@ -61,11 +80,9 @@ const GenerateResume = () => {
       setDescription("");
     }
   };
-
   const handleClear = () => {
     setDescription("");
   };
-
 
   // This is Input field in which we having the fields to taking input ..
   function showInputField() {
@@ -112,96 +129,125 @@ const GenerateResume = () => {
     </div>
   }
 
+  const renderInput = (name, label, type = "text") =>(
+    <div className="form-control w-full max-w-lg mb-4">
+      <label className="label">
+        <span className="label-text text-base-content">{label}</span>
+      </label>
+      <input
+      type={type}
+      {...register(name)}
+      className="input input-bordered w-full bg-base-100 text-base-content" 
+      />
+    </div>
+  )
+
+  const renderArrayInput = (name, label) =>{
+    const {fields ,append, remove } = useFieldArray({control,name});
+
+    return (
+      <div className="form-control w-full max-w-lg mb-4">
+        <label className="label">
+          <span className="label-text text-base-content">{label}</span>
+        </label>
+        {fields.map((field ,index) => (
+          <div key={field.id} className="flex items-center gap-2 mb-2">
+            <input 
+            {...register(`${name}.${index}`)}
+            className="input input-bordered w-full bg-base-100 text-base-content"
+            placeholder={`Enter ${label}...`}
+            />
+          <button 
+          type="button"
+          onClick={() => remove(index)}
+          className="btn btn-error btn-sm"
+          >
+          <FaTrash className="w-5 h-5 text-base-content" />
+          </button>
+          </div>
+      ))}
+         <button 
+          type="button"
+          onClick={() => append("")}
+          className="btn btn-secondary btn-sm mt-2 flex items-center"
+          >
+            <FaPlusCircle className="w-5 h-5 mr-1 text-base-content"/> Add {label}
+          </button>
+          </div>
+    );
+  };
+
+
+
+
+
   function showForm() {
     return (
       <div className="w-full p-10">
-        <h1 className="text-3xl font-bold text-center mb-2 flex items-center justify-center gap-2">
+        <h1 className="text-4xl font-bold text-center mb-6 flex items-center justify-center gap-2">
           <BiBook className="text-primary" /> Resume Form
         </h1>
         <div>
-          <p className="py-4">
-            {/* Personal Information Start.. */}
-            Personal Information
-          </p>
-          <div className="grid grid-cols-12 gap-5">
-            <div className="col-span-6">
-              <label htmlFor="fullName">Full Name:</label>
-              <input
-                onChange={handleChange} type="text"
-                name="fullName"
-                id="fullName"
-                placeholder="Enter Name"
-                value={data.personalInformation.fullName}
-                className="input input-bordered w-full" />
-            </div>
-            <div className="col-span-6">
-              <label htmlFor="name">Email:</label>
-              <input
-                onChange={handleChange} type="text"
-                name="email"
-                id="email"
-                placeholder="Enter here"
-                value={data.personalInformation.email}
-                className="input input-bordered w-full" />
-            </div>
-          </div>
-          <div className="grid grid-cols-12 mt-3 gap-5">
-            <div className="col-span-6">
-              <label htmlFor="phoneNumber">Phone:</label>
-              <input
-                onChange={handleChange} type="text"
-                name="phoneNumber"
-                id="phoneNumber"
-                placeholder="Enter Here"
-                value={data.personalInformation.phoneNumber}
-                className="input input-bordered w-full" />
-            </div>
-            <div className="col-span-6">
-              <label htmlFor="location" >Location:</label>
-              <input
-                onChange={handleChange} type="text"
-                name="location"
-                id="location"
-                placeholder="Enter here"
-                value={data.personalInformation.location.city}
-                className="input input-bordered w-full" />
-            </div>
-          </div>
-          <div className="grid grid-cols-12 mt-3 gap-5">
-            <div className="col-span-6">
-              <label htmlFor="linkedin">LinkedIn:</label>
-              <input
-                onChange={handleChange} type="text"
-                name="linkedin"
-                id="linkedin"
-                placeholder="Enter Here"
-                value={data.personalInformation.linkedin}
-                className="input input-bordered w-full" />
-            </div>
-            <div className="col-span-6">
-              <label htmlFor="githubHub" >GitHub:</label>
-              <input
-                onChange={handleChange} type="text"
-                name="githubHub"
-                id="githubHub"
-                placeholder="Enter here"
-                value={data.personalInformation.githubHub}
-                className="input input-bordered w-full" />
-            </div>
-          </div>
-          <div className="grid grid-cols-12 mt-3 gap-5">
-            <div className="col-span-12">
-              <label htmlFor="portfolio">PortFolio:</label>
-              <input
-                onChange={handleChange} type="text"
-                name="portfolio"
-                id="portfolio"
-                placeholder="Enter Here"
-                value={data.personalInformation.portfolio}
-                className="input input-bordered w-full" />
+        <form 
+        onSubmit={handleSubmit(onSubmit)}
+          className="p-6 space-y-6 bg-base-200 rounded-lg text-base-content"
+          >
+            <h2 className="text-2xl font-bold">Dynamic User Form</h2>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderInput("personalInfromation.fullName","Full Name")}
+              {renderInput("personalInfromation.email","Email","email")}
+              {renderInput(
+                "personalInfromation.phoneNumber",
+                "Phone Number",
+                "tel")}
+              {renderInput("personalInfromation.location","Location")}
+              {renderInput("personalInfromation.linkedin","LinkedIn", "url")}
+              {renderInput("personalInfromation.gitHub","GitHub","url")}
+              {renderInput("personalInfromation.portfolio","Portfolio","url")}
             </div>
 
-          </div>
+            <div className="form-control w-full">
+              <label htmlFor="" className="label">
+                <span className="label-text text-base-content">Summary</span>
+              </label>
+              <textarea 
+              {...register("summary")}
+              className="textarea textarea-bordered w-full bg-base-100 text-base-content"
+              rows={4}
+              ></textarea>
+            </div>
+
+            <h3 className="text-xl font-semibold mt-6">Skills</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {renderArrayInput(
+                "skills.programmingLanguages",
+                "programming Language"
+              )}
+              {renderArrayInput("skills.frameworks", "Framework")}
+              {renderArrayInput("skills.databases", "Database")}
+              {renderArrayInput("skills.cloud", "Cloud")}
+              {renderArrayInput("skills.devOpsTools", "DevOps Tool")}
+              {renderArrayInput("skills.otherSkills", "Other Skill")}
+            </div>
+
+            <h3 className="text-xl font-semibold mt-6">Experience</h3>
+            {data.experience.map((_,index)=>(
+              <div
+              key={index}
+              className="border p-4 rounded-lg mb-4 bg-base-100 text-base-content"
+              >
+                {renderArrayInput(`experience.${index}.jobTitle`, "Job Title")}
+                {renderArrayInput(`experience.${index}.company`, "Company")}
+                {renderArrayInput(`experience.${index}.location`, "Location")}
+                {renderArrayInput(`experience.${index}.duration`, "Duration")}
+              </div>
+            ))}
+
+            <button type="submit" className="btn btn-primary w-full">
+              Submit
+            </button>
+          </form>
         </div>
         {/* Personal Information End.. */}
       </div>
