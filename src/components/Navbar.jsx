@@ -1,10 +1,19 @@
-import React from 'react'
-import { Link } from 'react-router'
-import Services from '../pages/Services'
+import { Link, useLocation } from 'react-router';
+import ThemeToggle from './ThemeToggle';
 
 function Navbar() {
+    const location = useLocation();
+
+    const isActive = (path) => {
+        return location.pathname === path;
+    };
+
+    const navLinkClass = (path) => {
+        return isActive(path) ? 'text-primary font-semibold' : '';
+    };
+
     return (
-        <div className="navbar shadow bg-base-100 shadow-sm">
+        <div className="navbar shadow bg-base-100 shadow-sm sticky top-0 z-50 backdrop-blur-md bg-base-100/95">
             <div className="navbar-start">
                 <div className="dropdown">
                     <div tabIndex={0} role="button" className="btn btn-ghost lg:hidden">
@@ -15,37 +24,52 @@ function Navbar() {
                         tabIndex={0}
                         className="menu menu-sm dropdown-content bg-base-100 rounded-box z-1 mt-3 w-52 p-2 shadow">
                         <li>
-                            <Link to={"/about"}>About</Link>
+                            <Link to="/" className={navLinkClass('/')}>Home</Link>
                         </li>
                         <li>
-                            <Link to={"/services"}>Services</Link>
+                            <Link to="/about" className={navLinkClass('/about')}>About</Link>
                         </li>
                         <li>
-                            <Link to={"/contact"}>Contact Us</Link>
+                            <Link to="/services" className={navLinkClass('/services')}>Services</Link>
+                        </li>
+                        <li>
+                            <Link to="/contact" className={navLinkClass('/contact')}>Contact Us</Link>
+                        </li>
+                        <li>
+                            <Link to="/generate-resume" className="text-primary font-semibold">Generate Resume</Link>
                         </li>
                     </ul>
                 </div>
-                <Link to={"/"} className="btn btn-ghost text-xl">AI Resume Maker</Link>
+                <Link to="/" className="btn btn-ghost text-xl hover:text-primary transition-colors">
+                    ✨ AI Resume Maker
+                </Link>
             </div>
             <div className="navbar-center hidden lg:flex">
                 {/* Big Screen Section */}
                 <ul className="menu menu-horizontal px-1">
                     <li>
-                        <Link to={"/about"}>About</Link>
+                        <Link to="/" className={navLinkClass('/')}>Home</Link>
                     </li>
                     <li>
-                        <Link to={"/services"}>Services</Link>
+                        <Link to="/about" className={navLinkClass('/about')}>About</Link>
                     </li>
                     <li>
-                        <Link to={"/contact"}>Contact Us</Link>
+                        <Link to="/services" className={navLinkClass('/services')}>Services</Link>
+                    </li>
+                    <li>
+                        <Link to="/contact" className={navLinkClass('/contact')}>Contact Us</Link>
                     </li>
                 </ul>
             </div>
-            <div className="navbar-end">
-                <a className="btn">Login</a>
+            <div className="navbar-end flex gap-2">
+                <ThemeToggle />
+                <Link to="/generate-resume" className="btn btn-primary btn-sm md:btn-md">
+                    Generate Resume
+                </Link>
             </div>
         </div>
-    )
+    );
 }
 
-export default Navbar
+export default Navbar;
+
