@@ -18,6 +18,7 @@ export const isValidEmail = (email) => {
  * @returns {boolean} - True if valid
  */
 export const isValidPhone = (phone) => {
+    // eslint-disable-next-line
     const phoneRegex = /^[\+]?[(]?[0-9]{3}[)]?[-\s\.]?[0-9]{3}[-\s\.]?[0-9]{4,6}$/;
     return phoneRegex.test(phone.replace(/\s/g, ''));
 };

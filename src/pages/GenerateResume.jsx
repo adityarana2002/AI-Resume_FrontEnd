@@ -9,6 +9,41 @@ import { BiBook } from "react-icons/bi";
 import Resume from "../components/Resume";
 
 
+const ArrayInput = ({ control, name, label, register }) => {
+  const { fields, append, remove } = useFieldArray({ control, name });
+
+  return (
+    <div className="form-control w-full mb-4">
+      <label className="label">
+        <span className="label-text text-base-content">{label}</span>
+      </label>
+      {fields.map((field, index) => (
+        <div key={field.id} className="flex items-center gap-2 mb-2">
+          <input
+            {...register(`${name}.${index}`)}
+            className="input input-bordered w-full bg-base-100 text-base-content"
+            placeholder={`Enter ${label}...`}
+          />
+          <button
+            type="button"
+            onClick={() => remove(index)}
+            className="btn btn-error btn-sm"
+          >
+            <FaTrash className="w-5 h-5 text-base-content" />
+          </button>
+        </div>
+      ))}
+      <button
+        type="button"
+        onClick={() => append("")}
+        className="btn btn-secondary btn-sm mt-2 flex items-center"
+      >
+        <FaPlusCircle className="w-5 h-5 mr-1 text-base-content" /> Add {label}
+      </button>
+    </div>
+  );
+};
+
 const GenerateResume = () => {
 
   const [showFormUI, setShowFormUI] = useState(false)
@@ -57,8 +92,28 @@ const GenerateResume = () => {
     try {
       setLoading(true);
       const responseData = await generateResume(description);
-      console.log(responseData.data);
-      reset(responseData.data);
+      console.log("Resume Data Received:", responseData);
+
+      // Safety Adapter: Ensure all array items are strings, not objects (to prevent React crash)
+      const formatData = (data) => {
+        const safeData = { ...data };
+        ['experience', 'education', 'certifications', 'projects'].forEach(key => {
+          if (Array.isArray(safeData[key])) {
+            safeData[key] = safeData[key].map(item => {
+              if (typeof item === 'object' && item !== null) {
+                // Flatten object to string
+                return Object.values(item).filter(v => v && typeof v !== 'object').join(", ");
+              }
+              return item;
+            });
+          }
+        });
+        return safeData;
+      };
+
+      const safeResponse = formatData(responseData);
+      reset(safeResponse); // Data is already unwrapped by the service
+      setData(safeResponse); // Also update local state for the preview
       setShowFormUI(true);
       setShowPromptInput(false);
       setShowResumeUI(false);
@@ -68,10 +123,11 @@ const GenerateResume = () => {
       });
     } catch (error) {
       console.log(error);
-      toast.error("Error Generating Resume");
+      toast.error(error.message || "Error Generating Resume");
     } finally {
       setLoading(false);
-      setDescription("");
+      // Keep description so user can edit it if it failed
+      // setDescription(""); 
     }
   };
   const handleClear = () => {
@@ -136,41 +192,6 @@ const GenerateResume = () => {
     </div>
   )
 
-  const renderArrayInput = (name, label) => {
-    const { fields, append, remove } = useFieldArray({ control, name });
-
-    return (
-      <div className="form-control w-full  mb-4">
-        <label className="label">
-          <span className="label-text text-base-content">{label}</span>
-        </label>
-        {fields.map((field, index) => (
-          <div key={field.id} className="flex items-center gap-2 mb-2">
-            <input
-              {...register(`${name}.${index}`)}
-              className="input input-bordered w-full bg-base-100 text-base-content"
-              placeholder={`Enter ${label}...`}
-            />
-            <button
-              type="button"
-              onClick={() => remove(index)}
-              className="btn btn-error btn-sm"
-            >
-              <FaTrash className="w-5 h-5 text-base-content" />
-            </button>
-          </div>
-        ))}
-        <button
-          type="button"
-          onClick={() => append("")}
-          className="btn btn-secondary btn-sm mt-2 flex items-center"
-        >
-          <FaPlusCircle className="w-5 h-5 mr-1 text-base-content" /> Add {label}
-        </button>
-      </div>
-    );
-  };
-
   function showForm() {
     return (
       <div className="w-full p-10">
@@ -208,37 +229,37 @@ const GenerateResume = () => {
             {/* Skills */}
             <h3 className="text-xl font-semibold">Skills</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              {renderArrayInput("skills.programmingLanguages", "Programming Language")}
-              {renderArrayInput("skills.frameworks", "Framework")}
-              {renderArrayInput("skills.databases", "Database")}
-              {renderArrayInput("skills.cloud", "Cloud")}
-              {renderArrayInput("skills.devOpsTools", "DevOps Tool")}
-              {renderArrayInput("skills.otherSkills", "Other Skill")}
+              <ArrayInput control={control} name="skills.programmingLanguages" label="Programming Language" register={register} />
+              <ArrayInput control={control} name="skills.frameworks" label="Framework" register={register} />
+              <ArrayInput control={control} name="skills.databases" label="Database" register={register} />
+              <ArrayInput control={control} name="skills.cloud" label="Cloud" register={register} />
+              <ArrayInput control={control} name="skills.devOpsTools" label="DevOps Tool" register={register} />
+              <ArrayInput control={control} name="skills.otherSkills" label="Other Skill" register={register} />
             </div>
 
             {/* Experience */}
             <h3 className="text-xl font-semibold">Experience</h3>
-            {renderArrayInput("experience", "Experience")}
+            <ArrayInput control={control} name="experience" label="Experience" register={register} />
 
             {/* Education */}
             <h3 className="text-xl font-semibold">Education</h3>
-            {renderArrayInput("education", "Education")}
+            <ArrayInput control={control} name="education" label="Education" register={register} />
 
             {/* Certifications */}
             <h3 className="text-xl font-semibold">Certifications</h3>
-            {renderArrayInput("certifications", "Certification")}
+            <ArrayInput control={control} name="certifications" label="Certification" register={register} />
 
             {/* Projects */}
             <h3 className="text-xl font-semibold">Projects</h3>
-            {renderArrayInput("projects", "Project")}
+            <ArrayInput control={control} name="projects" label="Project" register={register} />
 
             {/* Languages */}
             <h3 className="text-xl font-semibold">Languages</h3>
-            {renderArrayInput("languages", "Language")}
+            <ArrayInput control={control} name="languages" label="Language" register={register} />
 
             {/* Interests */}
             <h3 className="text-xl font-semibold">Interests</h3>
-            {renderArrayInput("interests", "Interest")}
+            <ArrayInput control={control} name="interests" label="Interest" register={register} />
 
             <button type="submit" className="btn btn-primary w-full">
               Submit

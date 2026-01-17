@@ -5,7 +5,7 @@ export const baseURL = config.apiBaseUrl;
 
 export const axiosInstance = axios.create({
     baseURL: baseURL,
-    timeout: 10000,
+    timeout: 900000,
     headers: {
         'Content-Type': 'application/json',
     },
@@ -49,9 +49,26 @@ export const generateResume = async (description) => {
         const response = await axiosInstance.post(config.endpoints.generateResume, {
             userDescription: description,
         });
-        return response.data;
+        // Backend returns ApiResponse: { message, data: { data: {...}, think: ... }, success }
+        // We need to extract the actual resume content which is inside resonse.data.data.data (if nested)
+        // Or based on backend: 
+        // stringObjectMap has "data" (resume json) and "think".
+        // ApiResponse.data = stringObjectMap.
+        // So response.data.data contains { data: resumeJson, think: ... }
+
+        if (!response.data.success) {
+            throw new Error(response.data.message || 'Server replied with failure');
+        }
+
+        const result = response.data.data;
+        if (!result || !result.data) {
+            throw new Error("No resume data found in server response");
+        }
+        console.log("Parsed Resume Service Data:", result.data);
+        return result.data; // This should be the resume object
     } catch (error) {
-        throw new Error(error.response?.data?.message || 'Failed to generate resume');
+        console.error("Generate Resume Error:", error);
+        throw new Error(error.response?.data?.message || error.message || 'Failed to generate resume');
     }
 };
 

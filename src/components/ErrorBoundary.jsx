@@ -15,7 +15,8 @@ class ErrorBoundary extends Component {
         };
     }
 
-    static getDerivedStateFromError(error) {
+    // eslint-disable-next-line no-unused-vars
+    static getDerivedStateFromError(_error) {
         return { hasError: true };
     }
 
